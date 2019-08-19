@@ -131,6 +131,14 @@ class NeuralNetwork():
             outputs.append(self.__sigmoid(dot(outputs[-1], layer.synaptic_weights)))
         return outputs
 
+    @staticmethod
+    def normalize(x, mn, mx):
+        return (x - mn) / (mx - mn)
+
+    @staticmethod
+    def denormalize(x, mn, mx):
+        return x*(mx-mn) + mn
+
     def work(self, inputs):
         return self.think(inputs)[-1]
 
@@ -173,12 +181,12 @@ if __name__ == "__main__":
 
 
         # Create layer 1 (4 neurons, each with 3 inputs)
-        layer1 = NeuronLayer(100, 3)
-
-        # Create layer 2 (a single neuron with 4 inputs)
-        layer2 = NeuronLayer(20, 100)
-        layer3 = NeuronLayer(5, 20)
-        layer4 = NeuronLayer(1, 5)
+        # layer1 = NeuronLayer(100, 3)
+        #
+        # # Create layer 2 (a single neuron with 4 inputs)
+        # layer2 = NeuronLayer(20, 100)
+        # layer3 = NeuronLayer(5, 20)
+        # layer4 = NeuronLayer(1, 5)
 
         layers = [100, 20, 5]
 
