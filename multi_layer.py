@@ -1,8 +1,49 @@
 from numpy import exp, array, dot, random
 from typing import *
 from collections import namedtuple
+import datetime
+import pickle
+from os import path
+import matplotlib.pyplot as plt
+
 
 # random.seed(1)
+
+# def time_info(iteration):
+#     def my_decorator(func):
+#         def wrapper(self, training_set_inputs, training_set_outputs, number_of_training_iterations):
+#             print("Something is happening before the function is called." + str(n))
+#             func()
+#             curr = datetime.datetime.now()
+#             func(training_set_inputs, training_set_outputs, 1)
+#             delta = datetime.datetime.now() - curr
+#
+#         return wrapper
+#     return my_decorator
+
+def time_info(func):
+    def wrapper(self, training_set_inputs, training_set_outputs, number_of_training_iterations):
+        # data = []
+        # for x in range(30):
+        #     curr = datetime.datetime.now()
+        #     func(self, training_set_inputs, training_set_outputs, 1)
+        #     delta = datetime.datetime.now() - curr
+        #     data.append(delta.microseconds)
+        # c = max(data)*number_of_training_iterations
+        procent = 30/6000
+        sample = int(number_of_training_iterations * procent)
+        print("Calculating approximate time...")
+        curr = datetime.datetime.now()
+        func(self, training_set_inputs, training_set_outputs, sample)
+        delta = datetime.datetime.now() - curr
+        c = delta.microseconds/sample*number_of_training_iterations
+        print(f"Approximate time for all iterations: {datetime.timedelta(0, 0, c)}")
+        curr = datetime.datetime.now()
+        func(self, training_set_inputs, training_set_outputs, number_of_training_iterations)
+        print(f"Completed for {datetime.datetime.now() - curr}")
+
+    return wrapper
+
 
 error = namedtuple("error", ["error", "layer"])
 
@@ -39,8 +80,11 @@ class NeuralNetwork():
 
     # We train the neural network through a process of trial and error.
     # Adjusting the synaptic weights each time.
+    @time_info
     def train(self, training_set_inputs, training_set_outputs, number_of_training_iterations):
+        # data = []
         for iteration in range(number_of_training_iterations):
+            # curr = datetime.datetime.now()
             # Pass the training set through our neural network
             outputs = self.think(training_set_inputs)[::-1]
             last_error = training_set_outputs - outputs[0]
@@ -69,7 +113,13 @@ class NeuralNetwork():
             adjustments = [out.T.dot(delta) for out, delta in zip(outputs, deltas[::-1])]
             for layer, adjust in zip(self.layers, adjustments):
                 layer.synaptic_weights += adjust
-            # Adjust the weights.
+            # data.append(datetime.datetime.now() - curr)
+            # data[-1] = data[-1].microseconds
+
+        # plt.plot(data, "-o")
+        # plt.ylabel('data')
+        # plt.show()
+        # Adjust the weights.
 
     # The neural network thinks.
     def think(self, inputs):
@@ -83,6 +133,15 @@ class NeuralNetwork():
 
     def work(self, inputs):
         return self.think(inputs)[-1]
+
+    def save(self, fname="data.nn"):
+        with open(fname, "wb") as f:
+            pickle.dump(self, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+    @staticmethod
+    def load(fname="data.nn"):
+        with open(fname, "rb") as f:
+            return pickle.load(f)
 
     # The neural network prints its weights
     def print_weights(self):
@@ -107,21 +166,25 @@ def create_network(inputs, outputs, neurons_per_layer: List[int]) -> NeuralNetwo
 
 if __name__ == "__main__":
     # Seed the random number generator
-    random.seed(1)
+    if path.isfile("./data.nn"):
+        neural_network = NeuralNetwork.load()
+    else:
+        random.seed(1)
 
-    # Create layer 1 (4 neurons, each with 3 inputs)
-    layer1 = NeuronLayer(100, 3)
 
-    # Create layer 2 (a single neuron with 4 inputs)
-    layer2 = NeuronLayer(20, 100)
-    layer3 = NeuronLayer(5, 20)
-    layer4 = NeuronLayer(1, 5)
+        # Create layer 1 (4 neurons, each with 3 inputs)
+        layer1 = NeuronLayer(100, 3)
 
-    layers = [100, 20, 5]
+        # Create layer 2 (a single neuron with 4 inputs)
+        layer2 = NeuronLayer(20, 100)
+        layer3 = NeuronLayer(5, 20)
+        layer4 = NeuronLayer(1, 5)
 
-    # Combine the layers to create a neural network
-    # neural_network = NeuralNetwork([layer1, layer2, layer3, layer4])
-    neural_network = create_network(3, 1, layers)
+        layers = [100, 20, 5]
+
+        # Combine the layers to create a neural network
+        # neural_network = NeuralNetwork([layer1, layer2, layer3, layer4])
+        neural_network = create_network(3, 1, layers)
 
     print("Stage 1) Random starting synaptic weights: ")
     neural_network.print_weights()
@@ -136,9 +199,10 @@ if __name__ == "__main__":
     neural_network.train(training_set_inputs, training_set_outputs, 60000)
 
     print("Stage 2) New synaptic weights after training: ")
-    neural_network.print_weights()
+    # neural_network.print_weights()
 
     # Test the neural network with a new situation.
     print("Stage 3) Considering a new situation [1, 1, 0] -> ?: ")
     outputs = neural_network.work(array([1, 1, 0]))
     print(outputs)
+    neural_network.save()
