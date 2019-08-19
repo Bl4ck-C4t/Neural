@@ -205,4 +205,5 @@ if __name__ == "__main__":
     print("Stage 3) Considering a new situation [1, 1, 0] -> ?: ")
     outputs = neural_network.work(array([1, 1, 0]))
     print(outputs)
+    # print([abs(100 - b % round(b) * 100) for b in outputs])
     neural_network.save()
