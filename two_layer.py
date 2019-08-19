@@ -1,4 +1,4 @@
-from numpy import exp, array, random, dot
+from numpy import exp, array, random, dot, random
 
 
 class NeuronLayer():

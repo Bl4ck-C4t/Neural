@@ -1,6 +1,7 @@
-from numpy import exp, array, random, dot
+from numpy import exp, array, random, dot, random
 from typing import *
 from collections import namedtuple
+# random.seed(1)
 
 error = namedtuple("error", ["error", "layer"])
 
@@ -46,7 +47,7 @@ class NeuralNetwork():
             errors_and_layers: List[error] = [error(last_error, self.layers[-1])]
             deltas = [last_delta]
             for layer, output in zip(self.layers[::-1][1:], outputs[1:]):
-                current_error = errors_and_layers[-1].error.dot(errors_and_layers[-1].layer.synaptic_weights.T)
+                current_error = deltas[-1].dot(errors_and_layers[-1].layer.synaptic_weights.T)
                 current_delta = current_error * self.__sigmoid_derivative(output)
                 errors_and_layers.append(error(current_error, layer))
                 deltas.append(current_delta)
@@ -95,12 +96,11 @@ if __name__ == "__main__":
     layer1 = NeuronLayer(4, 3)
 
     # Create layer 2 (a single neuron with 4 inputs)
-    layer2 = NeuronLayer(3, 4)
+    layer2 = NeuronLayer(1, 4)
 
-    layer3 = NeuronLayer(1, 3)
 
     # Combine the layers to create a neural network
-    neural_network = NeuralNetwork([layer1, layer2, layer3])
+    neural_network = NeuralNetwork([layer1, layer2])
 
     print("Stage 1) Random starting synaptic weights: ")
     neural_network.print_weights()
@@ -119,5 +119,5 @@ if __name__ == "__main__":
 
     # Test the neural network with a new situation.
     print("Stage 3) Considering a new situation [1, 1, 0] -> ?: ")
-    hidden_state, _, output = neural_network.think(array([1, 1, 0]))
-    print(output)
+    hidden_states = neural_network.think(array([1, 1, 0]))
+    print(hidden_states[-1])
