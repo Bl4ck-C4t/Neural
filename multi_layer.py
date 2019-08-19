@@ -1,6 +1,7 @@
-from numpy import exp, array, random, dot, random
+from numpy import exp, array, dot, random
 from typing import *
 from collections import namedtuple
+
 # random.seed(1)
 
 error = namedtuple("error", ["error", "layer"])
@@ -16,6 +17,7 @@ class NeuronLayer():
 
     def __repr__(self):
         return str(self)
+
 
 class NeuralNetwork():
     def __init__(self, layers: List[NeuronLayer]):
@@ -69,7 +71,6 @@ class NeuralNetwork():
                 layer.synaptic_weights += adjust
             # Adjust the weights.
 
-
     # The neural network thinks.
     def think(self, inputs):
         # output_from_layer1 = self.__sigmoid(dot(inputs, self.layer1.synaptic_weights))
@@ -80,6 +81,9 @@ class NeuralNetwork():
             outputs.append(self.__sigmoid(dot(outputs[-1], layer.synaptic_weights)))
         return outputs
 
+    def work(self, inputs):
+        return self.think(inputs)[-1]
+
     # The neural network prints its weights
     def print_weights(self):
         for layer in range(len(self.layers)):
@@ -88,19 +92,36 @@ class NeuralNetwork():
             print(self.layers[layer].synaptic_weights)
 
 
+# [100,20,5]
+def create_network(inputs, outputs, neurons_per_layer: List[int]) -> NeuralNetwork:
+    layers = []
+    inp_layer = NeuronLayer(neurons_per_layer[0], inputs)
+    inp_layer.name = "Layer 0"
+    out_layer = NeuronLayer(outputs, neurons_per_layer[-1])
+    layers = [inp_layer]
+    for neurons in neurons_per_layer[1:]:
+        layers.append(NeuronLayer(neurons, layers[-1].synaptic_weights.shape[1]))
+    layers.append(out_layer)
+    return NeuralNetwork(layers)
+
+
 if __name__ == "__main__":
     # Seed the random number generator
     random.seed(1)
 
     # Create layer 1 (4 neurons, each with 3 inputs)
-    layer1 = NeuronLayer(4, 3)
+    layer1 = NeuronLayer(100, 3)
 
     # Create layer 2 (a single neuron with 4 inputs)
-    layer2 = NeuronLayer(1, 4)
+    layer2 = NeuronLayer(20, 100)
+    layer3 = NeuronLayer(5, 20)
+    layer4 = NeuronLayer(1, 5)
 
+    layers = [100, 20, 5]
 
     # Combine the layers to create a neural network
-    neural_network = NeuralNetwork([layer1, layer2])
+    # neural_network = NeuralNetwork([layer1, layer2, layer3, layer4])
+    neural_network = create_network(3, 1, layers)
 
     print("Stage 1) Random starting synaptic weights: ")
     neural_network.print_weights()
@@ -119,5 +140,5 @@ if __name__ == "__main__":
 
     # Test the neural network with a new situation.
     print("Stage 3) Considering a new situation [1, 1, 0] -> ?: ")
-    hidden_states = neural_network.think(array([1, 1, 0]))
-    print(hidden_states[-1])
+    outputs = neural_network.work(array([1, 1, 0]))
+    print(outputs)
